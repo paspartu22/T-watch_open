@@ -4,6 +4,7 @@
 #include "hardware/hardware.h"
 #include "hardware/powermgm.h"
 
+#include "app/otp/otp_app.h"
 #include "app/calc/calc_app.h"
 #include "app/FindPhone/FindPhone.h"
 #include "app/gps_status/gps_status.h"
@@ -51,6 +52,7 @@ void setup() {
     /**
      * apps here
      */
+    otp_app_setup();
     osmmap_app_setup();
     weather_app_setup();
     compass_app_setup();
