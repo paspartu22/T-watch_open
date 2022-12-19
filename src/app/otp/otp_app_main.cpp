@@ -1,13 +1,13 @@
-
-
 #include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "otp_app.h"
 #include "otp_app_main.h"
 
-#include "SimpleHOTP/SimpleHOTP.h"
 
+#include "SimpleHOTP/SimpleHOTP.h"
+#include "hardware/timesync.h"
 
 #include "gui/mainbar/app_tile/app_tile.h"
 #include "gui/mainbar/main_tile/main_tile.h"
@@ -16,8 +16,13 @@
 #include "gui/widget_factory.h"
 #include "gui/widget_styles.h"
 
+
+
+lv_obj_t * lvgl_otp; 
 lv_obj_t *otp_app_main_tile = NULL;
 
+static lv_style_t style1;
+ 
 char secret[] = "92A9D42DCE0236BD01EA1CCBFBBD54B7454FF421";
 const int hotp_lenght = 6;    //from 6 to 9 digits
 char char_otp[hotp_lenght+1];   //+'\0'
@@ -25,37 +30,49 @@ uint32_t otp = 0;
 Key key(secret, sizeof(secret)-1);
 SimpleHOTP gen(key, 0);
 
+bool otp_mainbar_button_event_cb( EventBits_t event, void *arg );
 
-lv_obj_t *lvgl_otp;  
 
-void otp_app_main_setup ( uint32_t tile_num ){
+char current_time[32] = "";
+
+void otp_app_main_setup ( uint32_t tile_num){
+
     otp_app_main_tile = mainbar_get_tile_obj( tile_num );
 
-        lv_obj_t * exit_btn = wf_add_exit_button( otp_app_main_tile, exit_otp_app_main_event_cb );
-    #if defined( ROUND_DISPLAY )
-        lv_obj_align(exit_btn, otp_app_main_tile, LV_ALIGN_IN_BOTTOM_MID, -( THEME_ICON_SIZE / 2 ), -THEME_ICON_PADDING );
-    #else
-        lv_obj_align(exit_btn, otp_app_main_tile, LV_ALIGN_IN_BOTTOM_LEFT, THEME_ICON_PADDING, -THEME_ICON_PADDING );
-    #endif
-    
 
-    static lv_style_t style1;
+    lv_obj_t * exit_btn = wf_add_exit_button( otp_app_main_tile, exit_otp_app_main_event_cb );
+
+    lv_obj_align(exit_btn, otp_app_main_tile, LV_ALIGN_IN_BOTTOM_LEFT, THEME_ICON_PADDING, -THEME_ICON_PADDING );
+
     lv_style_init(&style1);
-    lv_style_set_text_color(&style1, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-    lv_style_set_text_font(&style1, LV_STATE_DEFAULT, &lv_font_montserrat_44);
+    lv_style_copy(&style1, ws_get_label_style());
+    lv_style_set_text_color(&style1, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    lv_style_set_text_font(&style1, LV_STATE_DEFAULT, &lv_font_montserrat_10);
 
-    lvgl_otp = lv_label_create(lv_scr_act(), NULL);
+    lvgl_otp = lv_label_create( otp_app_main_tile, NULL);
     lv_obj_add_style(lvgl_otp, LV_OBJ_PART_MAIN, &style1);   
     
-    gen.generateStrHOTP(char_otp);
-    gen.saveCounter();
-    lv_label_set_text(lvgl_otp, char_otp);
-    lv_obj_align(lvgl_otp, NULL, LV_ALIGN_CENTER, 0, 0);
-
-    lv_obj_align(lvgl_otp, NULL, LV_ALIGN_CENTER, 0, 0);
-    
-    //mainbar_add_tile_button_cb( tile_num, otp_mainbar_button_event_cb );
+    mainbar_add_tile_button_cb( tile_num, otp_mainbar_button_event_cb );
 }
+
+bool otp_mainbar_button_event_cb( EventBits_t event, void *arg ) {
+    switch( event ) {
+        case BUTTON_EXIT:   mainbar_jump_back();
+                            break;
+    }
+    return( true );
+}
+
+void update_otp(){
+    time_t now = time(NULL);
+    timesync_get_current_timestring(current_time, sizeof(current_time));
+    gen.generateStrHOTP((intmax_t)now, char_otp);
+    char buffer[15];
+    sprintf(buffer, "%d", now);
+    lv_label_set_text(lvgl_otp, buffer);
+    lv_obj_align(lvgl_otp, NULL, LV_ALIGN_CENTER, 0, 0);
+}
+
 /*
 void otp_app_main_setup( uint32_t tile_num ) {
     
