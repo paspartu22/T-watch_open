@@ -69,6 +69,7 @@ void update_otp(){
     uint8_t X = 30; // sec for OTP
     uint32_t T = ((intmax_t)now - T0)/X;
 
+
     gen.generateStrHOTP(T, char_otp);
     lv_label_set_text(lvgl_otp, char_otp);
     lv_obj_align(lvgl_otp, NULL, LV_ALIGN_CENTER, 0, 0);
