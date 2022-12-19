@@ -47,7 +47,7 @@ void otp_app_main_setup ( uint32_t tile_num){
     lv_style_init(&style1);
     lv_style_copy(&style1, ws_get_label_style());
     lv_style_set_text_color(&style1, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-    lv_style_set_text_font(&style1, LV_STATE_DEFAULT, &lv_font_montserrat_10);
+    lv_style_set_text_font(&style1, LV_STATE_DEFAULT, &lv_font_montserrat_48);
 
     lvgl_otp = lv_label_create( otp_app_main_tile, NULL);
     lv_obj_add_style(lvgl_otp, LV_OBJ_PART_MAIN, &style1);   
@@ -65,11 +65,12 @@ bool otp_mainbar_button_event_cb( EventBits_t event, void *arg ) {
 
 void update_otp(){
     time_t now = time(NULL);
-    timesync_get_current_timestring(current_time, sizeof(current_time));
-    gen.generateStrHOTP((intmax_t)now, char_otp);
-    char buffer[15];
-    sprintf(buffer, "%d", now);
-    lv_label_set_text(lvgl_otp, buffer);
+    uint32_t T0 = 946674000; // 00:00:00 01.01.2000
+    uint8_t X = 30; // sec for OTP
+    uint32_t T = ((intmax_t)now - T0)/X;
+
+    gen.generateStrHOTP(T, char_otp);
+    lv_label_set_text(lvgl_otp, char_otp);
     lv_obj_align(lvgl_otp, NULL, LV_ALIGN_CENTER, 0, 0);
 }
 
