@@ -34,7 +34,8 @@ SimpleHOTP gen(key, 0);
 
 
 bool otp_mainbar_button_event_cb( EventBits_t event, void *arg );
-
+int last_time_sync = 0;
+int bar_width = 0;
 
 void my_task(lv_task_t * task)
 {
@@ -52,8 +53,10 @@ void my_task(lv_task_t * task)
     lv_label_set_text(timer, buffer);
     lv_obj_align(timer, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -20);
 
-    int width = 100 - ((intmax_t)now - T0) % X * 100 / X;
-    lv_bar_set_value(bar, width, LV_ANIM_ON);
+
+    int bar_width = 100 - ((intmax_t)now - T0) % X * 100 / X;
+  
+    lv_bar_set_value(bar, bar_width, LV_ANIM_ON);
     //lv_example_bar_2();
 }
 
